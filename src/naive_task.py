@@ -2,12 +2,23 @@ from utils.hparams import hparams
 from .diffsinger_task import DiffSingerMIDITask, OpencpopDataset
 from utils.pitch_utils import denorm_f0
 import utils
+from lion_pytorch import Lion
+import torch
 
 class NaiveTask(DiffSingerMIDITask):
     def __init__(self):
         super(NaiveTask, self).__init__()
         self.dataset_cls = OpencpopDataset
-
+    
+    def build_optimizer(self, model):
+        self.optimizer = optimizer = Lion(
+            filter(lambda p: p.requires_grad, model.parameters()),
+            lr=hparams['lr'],
+            betas=(0.9, 0.99),
+            weight_decay=hparams['weight_decay'])
+        print('Using lion optimizer (experimental)')
+        return optimizer
+    
     def run_model(self, model, sample, return_output=False, infer=False):
         '''
             steps:
